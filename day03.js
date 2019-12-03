@@ -56,32 +56,23 @@ function turnpoints(arr) {
   let newPoint = [];
 
   arr.forEach(dir => {
+    newPoint = [...points[points.length - 1]];
+    newPoint[2] += parseInt(dir.substring(1));
     switch (dir[0]) {
       case "R":
-        newPoint = [...points[points.length - 1]];
         newPoint[0] = newPoint[0] + parseInt(dir.substring(1));
-        newPoint[2] += parseInt(dir.substring(1));
-        points.push(newPoint);
         break;
       case "L":
-        newPoint = [...points[points.length - 1]];
         newPoint[0] = newPoint[0] - parseInt(dir.substring(1));
-        newPoint[2] += parseInt(dir.substring(1));
-        points.push(newPoint);
         break;
       case "U":
-        newPoint = [...points[points.length - 1]];
         newPoint[1] = newPoint[1] + parseInt(dir.substring(1));
-        newPoint[2] += parseInt(dir.substring(1));
-        points.push(newPoint);
         break;
       case "D":
-        newPoint = [...points[points.length - 1]];
         newPoint[1] = newPoint[1] - parseInt(dir.substring(1));
-        newPoint[2] += parseInt(dir.substring(1));
-        points.push(newPoint);
         break;
     }
+    points.push(newPoint);
   })
 
   return points;
