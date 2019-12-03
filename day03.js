@@ -13,6 +13,7 @@ function calcDistAndSteps(input1, input2) {
   const turnpoints1 = turnpoints(inputArray1);
   const turnpoints2 = turnpoints(inputArray2);
 
+  // will be an array of arrays: [L/R, U/D, steps first line, steps second line]
   let crossPoints = [];
 
   let startFirstLine;
@@ -40,9 +41,11 @@ function calcDistAndSteps(input1, input2) {
 
   console.log(crossPoints);
 
+  // calculates manhattan distance from starting point by adding coordinates (L/R and U/D) of cross points
   const distances = crossPoints.map(point => point[0] + point[1]);
   const minDistance = Math.min(...distances);
 
+  // calculates number of steps by adding number of steps for both lines of cross points
   const steps = crossPoints.map(point => point[2] + point[3]);
   const minSteps = Math.min(...steps);
   
@@ -50,8 +53,9 @@ function calcDistAndSteps(input1, input2) {
 }
 
 
+// returns coordinates of turning points and number of previous steps at each point
 function turnpoints(arr) {
-  // array of points: [L/R, U/D]
+  // array of points: [L/R, U/D, steps]
   let points = [[0,0,0]];
   let newPoint = [];
 
@@ -81,7 +85,7 @@ function turnpoints(arr) {
 
 // from http://paulbourke.net/geometry/pointlineplane/javascript.txt
 // (steps added by me)
-function intersect(x1, y1, x2, y2, x3, y3, x4, y4, stepsFirstArray, stepsSecondArray) {
+function intersect(x1, y1, x2, y2, x3, y3, x4, y4, stepsFirstLine, stepsSecondLine) {
 
   // Check if none of the lines are of length 0
 	if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4)) {
@@ -107,8 +111,9 @@ function intersect(x1, y1, x2, y2, x3, y3, x4, y4, stepsFirstArray, stepsSecondA
 	let x = x1 + ua * (x2 - x1)
   let y = y1 + ua * (y2 - y1)
   
-  let stepsA = stepsFirstArray + Math.abs(x - x1) + Math.abs(y - y1);
-  let stepsB = stepsSecondArray + Math.abs(x - x3) + Math.abs(y - y3);
+  // calculate number of steps per line (prev steps + steps to intersection)
+  let stepsA = stepsFirstLine + Math.abs(x - x1) + Math.abs(y - y1);
+  let stepsB = stepsSecondLine + Math.abs(x - x3) + Math.abs(y - y3);
 
 	return [x, y, stepsA, stepsB]
 };
