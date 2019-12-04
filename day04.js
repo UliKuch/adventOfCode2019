@@ -9,12 +9,13 @@ function calcPossibilities(rangeStart, rangeEnd) {
   let lengthAdjacentMatches = 0;
   let pwString = "";
 
+  // iterate through numbers from starting value to end value
   for (let c = rangeStart; c <= rangeEnd; c++) {
     doubles = 0;
     lengthAdjacentMatches = 0;
     pwString = c.toString();
 
-
+    // iterate through digits of each number
     for (let index = 0; index < pwLength - 1; index++) {
       
       // check for decreasing numbers
@@ -61,7 +62,7 @@ function numbersGroupLength(number, index, pwLength) {
   parseInt(number.toString()[index]) === parseInt(number.toString()[index + 1]) ? counter++ : null;
 
   return (counter === 0) ? 1 : counter + numbersGroupLength(number, index + 1, pwLength);
-}
+};
 
 
 console.log(calcPossibilities(rangeStart, rangeEnd));
