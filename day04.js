@@ -23,20 +23,9 @@ function calcPossibilities(rangeStart, rangeEnd) {
         break;
       };
 
-      // check for length of adjacent matches
-      lengthAdjacentMatches = numbersGroupLength(c, index, pwLength)
-
-      // if there are more than 2 adjacent matches and there haven't been any doubles before...
-      if ((lengthAdjacentMatches > 2) && (doubles === 0)) {
-
-        // ... subtract number of doubles the group of matches will count for from doubles counter
-        // (if the group is three digits long, it will count for two doubles. by subtracting them
-        // from the doubles counter, c will only be added if there is another double)
-        doubles -= lengthAdjacentMatches - 1;
-      }
-
-      // check for adjacent doubles
-      if (parseInt(pwString[index + 1]) === parseInt(pwString[index])) {
+      // check for proper doubles (two and only two identical digits)
+      if ((parseInt(pwString[index + 1]) === parseInt(pwString[index])) && !(parseInt(pwString[index + 2]) === parseInt(pwString[index]))
+          && !(parseInt(pwString[index + 1]) === parseInt(pwString[index - 1]))) {
         doubles++;
       }
 
@@ -46,22 +35,6 @@ function calcPossibilities(rangeStart, rangeEnd) {
   }
 
   return possPasswords.length;
-};
-
-
-// returns size of group of adjacent digits
-function numbersGroupLength(number, index, pwLength) {
-
-  let counter = 0;
-
-  if (index > pwLength - 1) {
-    return 0;
-  }
-
-  // if digit is the same as the next digit, increase counter by one
-  parseInt(number.toString()[index]) === parseInt(number.toString()[index + 1]) ? counter++ : null;
-
-  return (counter === 0) ? 1 : counter + numbersGroupLength(number, index + 1, pwLength);
 };
 
 
