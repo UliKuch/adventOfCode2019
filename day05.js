@@ -45,8 +45,24 @@ function intcode(inputArray, inputInt) {
         step = 2;
         break;
       case 04:
-        outputArray.push(valueParam1)
+        outputArray.push(valueParam1);
         step = 2;
+        break;
+      case 05:
+        i = !(valueParam1 === 0) ? valueParam2 : i;
+        step = !(valueParam1 === 0) ? 0 : 3;
+        break;
+      case 06:
+        i = (valueParam1 === 0) ? valueParam2 : i;
+        step = (valueParam1 === 0) ? 0 : 3;
+        break;
+      case 07:
+        arr[arr[i + 3]] = (valueParam1 < valueParam2) ? 1 : 0;
+        step = 4;
+        break;
+      case 08:
+          arr[arr[i + 3]] = (valueParam1 === valueParam2) ? 1 : 0;
+          step = 4;
         break;
       case 99:
         return outputArray;
@@ -58,4 +74,5 @@ function intcode(inputArray, inputInt) {
 
 
 
-console.log(intcode(input, 1));
+console.log("Result part 1: ", intcode(input, 1));
+console.log("Result part 2: ", intcode(input, 5));
