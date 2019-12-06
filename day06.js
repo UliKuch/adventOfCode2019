@@ -12,17 +12,19 @@ J)K
 K)L`
 
 function calcAllOrbits(input) {
-  const arr = input.split("\n");
   let c = 0; // counter
 
-  const splitArr = arr.map(str => {
+  // split input string into array of tuples
+  const splitArr = input.split("\n")
+  .map(str => {
     let splitString = str.split(")");
     return splitString;
   });
 
-
+  // calculate number of orbits for each "object" (second value of tuple)
+  // by increading c by 1 + the number of orbits of the orbited "object" (tuple[0])
   splitArr.forEach((tuple) => {
-    c += calcOrbitsOfObject(tuple[1], splitArr);
+    c += 1 + calcOrbitsOfObject(tuple[0], splitArr);
   })
 
   return c;
@@ -32,15 +34,17 @@ function calcOrbitsOfObject(str, array) {
   let c = 0; // counter
   let match = ""
   
-  array.forEach(tuple => {
-    if (tuple[1] === str) {
+  // check if input "object" (str) orbits another object (i.e. is at the array[i][1] position)
+  for (let i = 0; i < array.length; i++) {
+    if (array[i][1] === str) {
       c++;
-      match = tuple[0]
+      match = array[i][0];
+      break;
     }
-  })
+  }
   
+  // if str orbits another "object", add the orbit of that "object" to the return value
   return (c > 0) ? c + calcOrbitsOfObject(match, array) : 0;
-
 };
 
 console.log(calcAllOrbits(testInput));
