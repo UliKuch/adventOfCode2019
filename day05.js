@@ -3,15 +3,20 @@ const input = [3,225,1,225,6,6,1100,1,238,225,104,0,2,136,183,224,101,-5304,224,
 class Intcode {
   constructor(program) {
     this._program = [...program];
+    this.memory = program.concat(new Array(10000).fill(0));
     this.output = [];
     this._finished = false;
-    this.position = 0;
+    this.position = 0; // the current position in processing the program
+    this.relativeBase = 0 // relative base for parameters in relative mode
   };
 
   set program(newProgram) {
     this._program = [...newProgram];
+    this.memory = newProgram.concat(new Array(10000).fill(0));
     this._finished = false;
     this.position = 0;
+    this.relativeBase = 0;
+    // output has to be reset manually using resetOutput()
   };
 
   get program() {
@@ -26,50 +31,78 @@ class Intcode {
     this.output = [];
   }
 
+  setValueOfParam(param, paramMode) {
+    switch (paramMode) {
+      // position mode
+      case 0: 
+        return this.memory[param];
+      // immediate mode
+      case 1:
+        return param;
+      // relative mode
+      case 2:
+        return this.memory[param + this.relativeBase]
+      default:
+        return "Error while setting parameter value.";
+    }
+  }
+
   calcOutput(...input) {
-    let arr = this._program;
+    // let arr = this._program;
+    let program = this._program;
+    let arr = this.memory;
 
     let step = 4,
-        opcode = 0,
-        inputProcessed = 0,
-        modeParam1 = 0,
-        modeParam2 = 0,
-        modeParam3 = 0,
-        valueParam1 = 0,
-        valueParam2 = 0,
-        valueParam3 = 0;
+        inputProcessed = 0;
 
-    for (this.position; this.position < arr.length; this.position += step) {
+    // iterate over program, starting at intocde's current position (this.position)
+    for (this.position; this.position < program.length; this.position += step) {
+      // set i to current position
       let i = this.position;
 
-      // if opcode value (arr[i]) is bigger than 99 (i.e. if there is a parameter in immediate mode),
-      // set opcode variable to last two digits of arr[i]
-      opcode = arr[i] > 99 ? parseInt(arr[i].toString().substring((arr[i].toString().length - 2))) : arr[i];
+      // the value at the current position of the program serves as the instruction
+      // (consisting of mode of paramters (if specified) and opcode)
+      let instruction = arr[i];
+      let instrAsStr = instruction.toString();
+
+      // if instruction is bigger than 99 (i.e. if a mode for the parameters is specified),
+      // set opcode variable to last two digits of instruction
+      let opcode = instruction > 99 ? parseInt(instrAsStr.substring((instrAsStr.length - 2))) : instruction;
+
+      let param1 = arr[i + 1],
+          param2 = arr[i + 2],
+          param3 = arr[i + 3]
 
       // set modes of parameters if specified
-      modeParam1 = (arr[i].toString().length > 2) ? parseInt(arr[i].toString()[arr[i].toString().length - 3]) : 0;
-      modeParam2 = (arr[i].toString().length > 3) ? parseInt(arr[i].toString()[arr[i].toString().length - 4]) : 0;
-      modeParam3 = (arr[i].toString().length > 4) ? parseInt(arr[i].toString()[arr[i].toString().length - 5]) : 0;
+      let modeParam1 = (instrAsStr.length > 2) ? parseInt(instrAsStr[instrAsStr.length - 3]) : 0,
+          modeParam2 = (instrAsStr.length > 3) ? parseInt(instrAsStr[instrAsStr.length - 4]) : 0,
+          modeParam3 = (instrAsStr.length > 4) ? parseInt(instrAsStr[instrAsStr.length - 5]) : 0;
 
       // set parameters' values according to modes
-      valueParam1 = (modeParam1 === 0) ? arr[arr[i + 1]] : arr[i + 1];
-      valueParam2 = (modeParam2 === 0) ? arr[arr[i + 2]] : arr[i + 2];
-      valueParam3 = (modeParam3 === 0) ? arr[arr[i + 3]] : arr[i + 3];
+      let valueParam1 = this.setValueOfParam(param1, modeParam1),
+          valueParam2 = this.setValueOfParam(param2, modeParam2),
+          valueParam3 = this.setValueOfParam(param3, modeParam3);
+
+      // set positions indicated by parameters
+      let positionFromParam1 = (modeParam1 === 2) ? (param1 + this.relativeBase) : param1,
+          positionFromParam2 = (modeParam2 === 2) ? (param2 + this.relativeBase) : param2,
+          positionFromParam3 = (modeParam3 === 2) ? (param3 + this.relativeBase) : param3;
+
 
       switch (opcode) {
         case 1:
-          arr[arr[i + 3]] = valueParam1 + valueParam2;
+          arr[positionFromParam3] = valueParam1 + valueParam2;
           step = 4;
           break;
         case 2:
-          arr[arr[i + 3]] = valueParam1 * valueParam2;
+          arr[positionFromParam3] = valueParam1 * valueParam2;
           step = 4;
           break;
         case 3:
           if (inputProcessed === input.length) {
             return this.output;
           }
-          arr[arr[i + 1]] = input[inputProcessed];
+          arr[positionFromParam1] = input[inputProcessed];
           inputProcessed ++;
           step = 2;
           break;
@@ -86,12 +119,16 @@ class Intcode {
           step = (valueParam1 === 0) ? 0 : 3;
           break;
         case 7:
-          arr[arr[i + 3]] = (valueParam1 < valueParam2) ? 1 : 0;
+          arr[positionFromParam3] = (valueParam1 < valueParam2) ? 1 : 0;
           step = 4;
           break;
         case 8:
-            arr[arr[i + 3]] = (valueParam1 === valueParam2) ? 1 : 0;
-            step = 4;
+          arr[positionFromParam3] = (valueParam1 === valueParam2) ? 1 : 0;
+          step = 4;
+          break;
+        case 9:
+          this.relativeBase += valueParam1;
+          step = 2;
           break;
         case 99:
           this._finished = true;
