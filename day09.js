@@ -24,4 +24,7 @@ computer.resetOutput();
 
 console.log("BOOST in test mode:", computer.calcOutput(1));
 
+computer.program = input;
+computer.resetOutput();
 
+console.log("BOOST in sensor boost mode:", computer.calcOutput(2));
