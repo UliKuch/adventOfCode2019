@@ -4,15 +4,23 @@ class Intcode {
   constructor(program) {
     this._program = [...program];
     this.output = [];
+    this._finished = false;
+    this.position = 0;
   };
 
   set program(newProgram) {
     this._program = [...newProgram];
+    this._finished = false;
+    this.position = 0;
   };
 
   get program() {
     return this._program;
   };
+
+  get finished() {
+    return this._finished;
+  }
 
   resetOutput() {
     this.output = [];
@@ -23,6 +31,7 @@ class Intcode {
 
     let step = 4,
         opcode = 0,
+        inputProcessed = 0,
         modeParam1 = 0,
         modeParam2 = 0,
         modeParam3 = 0,
@@ -30,7 +39,8 @@ class Intcode {
         valueParam2 = 0,
         valueParam3 = 0;
 
-    for (let i = 0; i < arr.length; i += step) {
+    for (this.position; this.position < arr.length; this.position += step) {
+      let i = this.position;
 
       // if opcode value (arr[i]) is bigger than 99 (i.e. if there is a parameter in immediate mode),
       // set opcode variable to last two digits of arr[i]
@@ -56,7 +66,11 @@ class Intcode {
           step = 4;
           break;
         case 3:
-          arr[arr[i + 1]] = input[0];
+          if (inputProcessed === input.length) {
+            return this.output;
+          }
+          arr[arr[i + 1]] = input[inputProcessed];
+          inputProcessed ++;
           step = 2;
           break;
         case 4:
@@ -64,11 +78,11 @@ class Intcode {
           step = 2;
           break;
         case 5:
-          i = !(valueParam1 === 0) ? valueParam2 : i;
+          this.position = !(valueParam1 === 0) ? valueParam2 : i;
           step = !(valueParam1 === 0) ? 0 : 3;
           break;
         case 6:
-          i = (valueParam1 === 0) ? valueParam2 : i;
+          this.position = (valueParam1 === 0) ? valueParam2 : i;
           step = (valueParam1 === 0) ? 0 : 3;
           break;
         case 7:
@@ -80,6 +94,7 @@ class Intcode {
             step = 4;
           break;
         case 99:
+          this._finished = true;
           return this.output;
         default:
           return "Error!";
@@ -88,9 +103,15 @@ class Intcode {
   };
 }
 
-const computer = new Intcode(input)
+// only show result for day 5 if module is called directly
+// (see https://stackoverflow.com/questions/4981891/node-js-equivalent-of-pythons-if-name-main)
+if (typeof require !== 'undefined' && require.main === module) {
+  const computer = new Intcode(input)
 
-console.log("Result part 1: ", computer.calcOutput(1));
-computer.program = [...input];
-computer.resetOutput();
-console.log("Result part 2: ", computer.calcOutput(5));
+  console.log("Result part 1: ", computer.calcOutput(1));
+  computer.program = input;
+  computer.resetOutput();
+  console.log("Result part 2: ", computer.calcOutput(5));
+}
+
+module.exports = {Intcode}
