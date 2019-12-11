@@ -2,6 +2,9 @@ const input = [3,8,1005,8,314,1106,0,11,0,0,0,104,1,104,0,3,8,1002,8,-1,10,1001,
 
 const { Intcode } = require("./intcode");
 
+const fs = require('fs');
+
+
 class HullPaintingRobot {
   constructor(program) {
     this.position = {x: 0, y: 0};
@@ -11,7 +14,7 @@ class HullPaintingRobot {
     // direction 0 is north, continuing clockwise (here, an enum would be useful)
     this.direction = 0;
     // 0 = black; 1 = white
-    this.currentPanel = 0;
+    this.currentPanel = 1;
     this.computer = new Intcode(program);
   }
 
@@ -56,18 +59,46 @@ class HullPaintingRobot {
     this.currentPanel = (this.panelsPainted.some(p => p.x === this.position.x && p.y === this.position.y))
         ? this.panelsPaintedColor[this.panelsPainted.findIndex(p => p.x === this.position.x && p.y === this.position.y)]
         : 0;
-
-    // console.log(this.position, this.panelsPainted, this.direction, this.currentPanel, this.computer.output)
   }
 
 }
 
-function paint(input) {
-  const robot = new HullPaintingRobot(input);
-  for (let x = 0; x < 100000; x++) {
+const robot = new HullPaintingRobot(input);
+
+function paint(robot) {
+  for (let x = 0; x < 1000; x++) {
     robot.paintPanel();
     console.log("panelsPainted.length", robot.panelsPainted.length);
   }
 };
 
-paint(input);
+
+function displayPainting(panelsPainted, panelsPaintedColor) {
+  let painting = [];
+  let paintingLine = new Array(50).fill(".");
+
+  // fill painting with lines
+  for (let i = 0; i < 10; i++) {
+    painting.push([...paintingLine]);
+  }
+
+  // paint black panels
+  panelsPainted.forEach((point, index) => {
+    if (panelsPaintedColor[index] === 1) {
+      painting[point.y][point.x] = "#";
+    }
+  });
+
+  // append each line of painting to file
+  painting.forEach(line => {
+    fs.appendFileSync("day11_output.txt", line.join("") + "\n" , function(err) {
+      if(err) {
+          return console.log(err);
+      }
+    }); 
+  })
+}
+
+
+paint(robot);
+displayPainting(robot.panelsPainted, robot.panelsPaintedColor);
