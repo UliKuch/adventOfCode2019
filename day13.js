@@ -2,7 +2,111 @@ const input = [1,380,379,385,1008,2571,363613,381,1005,381,12,99,109,2572,1101,0
 
 const { Intcode } = require("./intcode")
 
-const computer = new Intcode(input);
+const readline = require('readline');
+
+class Arcade extends Intcode {
+  constructor(input) {
+    super(input);
+    // set to free play mode
+    this.memory[0] = 2;
+    this.score = 0;
+    this.display = [];
+    this.renderedGame = "";
+
+    // create empty display filled with dots;
+    let displayLine = new Array(42).fill(".");
+    for (let i = 0; i < 23; i++) {
+      this.display.push([...displayLine]);
+    };
+  };
+
+  renderGame(instructions) {
+    let x,
+        y,
+        tileId;
+
+    for (let i = 0; i < instructions.length; i += 3) {
+
+      x = instructions[i];
+      y = instructions[i + 1];
+      tileId = instructions[i + 2];
+
+      // if a score is specified, store it and move to next iteration
+      if (x === -1 && y === 0) {
+        this.score = tileId;
+        continue;
+      }
+
+      switch (tileId) {
+        case 0:
+          this.display[y][x] = ".";
+          break;
+        case 1:
+          this.display[y][x] = "w";
+          break;
+        case 2:
+          this.display[y][x] = "x";
+          break;
+        case 3:
+          this.display[y][x] = "_";
+          break;
+        case 4:
+          this.display[y][x] = "o";
+          break;
+        default:
+          return "Error while trying to render game.";
+      }
+    }
+
+    // store rendered game
+    this.renderedGame = "";
+    this.display.forEach(line => {
+      this.renderedGame += line.join("") + "\n";
+    })
+  };
+
+  play() {
+    // clear output array
+    this.resetOutput();
+
+    // calculate first output
+    this.calcOutput();
+
+    // render initial game
+    this.renderGame(this.output);
+    console.log("start \nscore:", this.score + "\n" + this.renderedGame);
+
+    // move
+    this.moveJoystick();
+  }
+
+  moveJoystick() {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    })
+
+    // prompt user input
+    rl.question("Move joystick: ", joystick => {
+      let movement = joystick;
+
+      // enable controlling game with a and d keys
+      movement = (joystick === "a") ? -1 : movement;
+      movement = (joystick === "d") ? 1 : movement;
+
+      this.resetOutput();
+
+      this.calcOutput(movement);
+
+      this.renderGame(this.output);
+      console.log("score:", this.score + "\n" + this.renderedGame);
+      rl.close();
+      this.finished ? null : this.moveJoystick();
+    })
+  }
+
+}
+
 
 function calcBlockTiles(instructions) {
   let c = 0;
@@ -12,6 +116,13 @@ function calcBlockTiles(instructions) {
   }
 
   return c
-}
+};
 
-console.log(calcBlockTiles(computer.calcOutput()));
+
+const arcade = new Arcade(input);
+
+// console.log(calcBlockTiles(arcade.calcOutput()));
+// arcade.program = input;
+// arcade.resetOutput();
+
+arcade.play();
