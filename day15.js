@@ -10,6 +10,7 @@ class Droid extends Intcode {
     this.droidStart = {x: 25, y: 25}
     this.droidPosition = {...this.droidStart};
     this.steps = 0;
+    this.emptyFields = 0;
     this.map = [];
 
     // fill map
@@ -72,12 +73,21 @@ class Droid extends Intcode {
         // going back a step 
         if (this.map[newPosition.y][newPosition.x] === "."
             || this.map[newPosition.y][newPosition.x] === "S") {
-          this.map[this.droidPosition.y][this.droidPosition.x] = "-";
+          
+          if (!(this.map[this.droidPosition.y][this.droidPosition.x] === "O")) {
+            this.map[this.droidPosition.y][this.droidPosition.x] = "-";
+          }
+
           this.steps--;
 
-        // going on new empty field or forward on field already visited
-        } else if (this.map[newPosition.y][newPosition.x] === " "
-            || this.map[newPosition.y][newPosition.x] === "-") {
+        // going on new empty field
+        } else if (this.map[newPosition.y][newPosition.x] === " ") {
+          this.map[newPosition.y][newPosition.x] = ".";
+          this.steps++;
+          this.emptyFields++;
+
+        // going forward on field already visited
+        } else if (this.map[newPosition.y][newPosition.x] === "-") {
           this.map[newPosition.y][newPosition.x] = ".";
           this.steps++;
         }
@@ -100,7 +110,59 @@ class Droid extends Intcode {
     return status
   }
 
-}
+  fillMapWithOxygen() {
+    let time = 0; 
+    let fieldFilledWithOxygen;
+    let mapCopy;
+
+    while (true) {
+      fieldFilledWithOxygen = 0;
+
+      // deep copy of map
+      mapCopy = [];
+      this.map.forEach(line => mapCopy.push([...line]))
+
+      for (let y = 0; y < mapCopy.length; y++) {
+
+        for (let x = 0; x < mapCopy[0].length; x++) {
+
+          if (mapCopy[y][x] === "O") {
+
+            if (this.map[y][x + 1] === "." || this.map[y][x + 1] === "-") {
+              this.map[y][x + 1] = "O";
+              fieldFilledWithOxygen++;
+            }
+            if (this.map[y][x - 1] === "." || this.map[y][x - 1] === "-") {
+              this.map[y][x - 1] = "O";
+              fieldFilledWithOxygen++;
+            }
+            if (this.map[y + 1][x] === "." || this.map[y + 1][x] === "-") {
+              this.map[y + 1][x] = "O";
+              fieldFilledWithOxygen++;
+            }
+            if (this.map[y - 1][x] === "." || this.map[y - 1][x] === "-") {
+              this.map[y - 1][x] = "O";
+              fieldFilledWithOxygen++;
+            }
+
+          }                
+
+        }
+
+      }
+
+      // return time counter if no new fields were filled with oxygen in current iteration
+      if (fieldFilledWithOxygen === 0) {
+        return time;
+      }
+
+      time++;
+    }
+
+  }
+
+};
+
 
 function search(droid) {
 
@@ -114,10 +176,17 @@ function search(droid) {
 
     if (status === 2) {
       droid.renderMap();
-      return droid.steps;
+      console.log("Minimal number of steps to Oxygen tank:", droid.steps);
+      console.log(droid.emptyFields)
+    }
+
+    // all empty fields revealed (number found by printing droid.emptyFields when visual check cofirmed map to be complete)
+    if (droid.emptyFields === 797) {
+      return droid.fillMapWithOxygen();
     }
   }
-}
+};
+
 
 const repairDroid = new Droid(input);
 console.log(search(repairDroid));
