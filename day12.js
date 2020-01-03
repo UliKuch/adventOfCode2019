@@ -73,43 +73,37 @@ function calcTotalEnergy(steps, ...moons) {
 }
 
 
-function stepsToPrevState(steps, ...moons) {
-  let sameX = [];
-  let sameY = [];
-  let sameZ = [];
+function stepsToPrevState(...moons) {
+  let sameX = 0;
+  let sameY = 0;
+  let sameZ = 0;
+  let i = 0;
 
-  for (let i = 1; i < steps; i++) {
+  // 
+  while (sameX <= 0 || sameY <= 0 || sameZ <= 0) {
     moveMoons(...moons);
+    i++;
 
-    // if x position is identical to starting position and x velocity identical to starting velocity (0), add to sameX array...
-    if (moons.every(moon => moon.position.x === moon.history[0].x && moon.velocity.x === 0)) {
-      sameX.push(i)
+    // if x position is identical to starting position and x velocity identical to starting velocity (0), set sameX if it is not set yet...
+    if (moons.every(moon => moon.position.x === moon.history[0].x && moon.velocity.x === 0) && sameX === 0) {
+      sameX = i;
     }
 
     // ... do the same for y...
-    if (moons.every(moon => moon.position.y === moon.history[0].y && moon.velocity.y === 0)) {
-      sameY.push(i)
+    if (moons.every(moon => moon.position.y === moon.history[0].y && moon.velocity.y === 0) && sameY === 0) {
+      sameY = i;
     }
 
     // ... and for z.
-    if (moons.every(moon => moon.position.z === moon.history[0].z && moon.velocity.z === 0)) {
-      sameZ.push(i)
+    if (moons.every(moon => moon.position.z === moon.history[0].z && moon.velocity.z === 0) && sameZ === 0) {
+      sameZ = i;
     }
   }
 
+  console.log(sameX, sameY, sameZ)
+
   // calculate lowest common multitude
-  let lcmVelocities = [sameX[0], sameY[0], sameZ[0]].reduce(lcm);
-
-  console.log("sameX: ", sameX)
-  console.log("sameX period: ", sameX.map((pos, index) => sameX[index + 1] - pos));
-
-  console.log("sameY: ", sameY)
-  console.log("sameY period: ", sameY.map((pos, index) => sameY[index + 1] - pos));
-
-  console.log("sameZ: ", sameZ)
-  console.log("sameZ period: ", sameZ.map((pos, index) => sameZ[index + 1] - pos));
-
-  console.log("lcmVelocities:", lcmVelocities)
+  let lcmVelocities = [sameX, sameY, sameZ].reduce(lcm);
 
   return lcmVelocities;
 }
@@ -133,4 +127,4 @@ const moonArray = [io, europa, ganymede, callisto];
 
 // console.log(calcTotalEnergy(1000, ...moonArray));
 
-console.log(stepsToPrevState(1000000, ...moonArray));
+console.log(stepsToPrevState(...moonArray));
