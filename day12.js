@@ -21,7 +21,7 @@ class Moon {
   }
 
   get stepsPerformed() {
-    return this.history.length; 
+    return this.history.length;
   }
 
   newTimeStep(...moons) {
@@ -53,7 +53,7 @@ function moveMoons(...moons) {
   moons.forEach((moon, index) => {
     // copy moons
     let otherMoons = [...moons];
-    
+
     // removes current moon from otherMoons array
     otherMoons.splice(index, 1);
 
@@ -73,6 +73,52 @@ function calcTotalEnergy(steps, ...moons) {
 }
 
 
+function stepsToPrevState(steps, ...moons) {
+  let sameX = [];
+  let sameY = [];
+  let sameZ = [];
+
+  for (let i = 1; i < steps; i++) {
+    moveMoons(...moons);
+
+    // if x position is identical to starting position and x velocity identical to starting velocity (0), add to sameX array...
+    if (moons.every(moon => moon.position.x === moon.history[0].x && moon.velocity.x === 0)) {
+      sameX.push(i)
+    }
+
+    // ... do the same for y...
+    if (moons.every(moon => moon.position.y === moon.history[0].y && moon.velocity.y === 0)) {
+      sameY.push(i)
+    }
+
+    // ... and for z.
+    if (moons.every(moon => moon.position.z === moon.history[0].z && moon.velocity.z === 0)) {
+      sameZ.push(i)
+    }
+  }
+
+  // calculate lowest common multitude
+  let lcmVelocities = [sameX[0], sameY[0], sameZ[0]].reduce(lcm);
+
+  console.log("sameX: ", sameX)
+  console.log("sameX period: ", sameX.map((pos, index) => sameX[index + 1] - pos));
+
+  console.log("sameY: ", sameY)
+  console.log("sameY period: ", sameY.map((pos, index) => sameY[index + 1] - pos));
+
+  console.log("sameZ: ", sameZ)
+  console.log("sameZ period: ", sameZ.map((pos, index) => sameZ[index + 1] - pos));
+
+  console.log("lcmVelocities:", lcmVelocities)
+
+  return lcmVelocities;
+}
+
+// find lowest common multitude (from https://stackoverflow.com/questions/47047682/least-common-multiple-of-an-array-values-using-euclidean-algorithm)
+// use like this to calculate lcm of an array: [1, 2, 3, 4, 5].reduce(lcm);
+const gcd = (a, b) => a ? gcd(b % a, a) : b;
+const lcm = (a, b) => a * b / gcd(a, b);
+
 const io = new Moon(input[0]),
       europa = new Moon(input[1]),
       ganymede = new Moon(input[2]),
@@ -85,4 +131,6 @@ const io = new Moon(input[0]),
 
 const moonArray = [io, europa, ganymede, callisto];
 
-console.log(calcTotalEnergy(1000, ...moonArray));
+// console.log(calcTotalEnergy(1000, ...moonArray));
+
+console.log(stepsToPrevState(1000000, ...moonArray));
